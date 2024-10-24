@@ -1,8 +1,7 @@
 import "dotenv/config";
 import express from "express";
-import path from "path";
+import path, { dirname } from "path";
 import { fileURLToPath } from "url";
-import { dirname } from "path";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -38,32 +37,47 @@ app.get("/", async (req, res) => {
     res.render("index", { avatarUrl });
   } catch (error) {
     console.error("Error rendering index:", error);
-    res.status(500).send("Internal Server Error");
+    res.status(500).render("error");
   }
 });
 
-app.get("/twitter", (req, res) => {
-  res.redirect("https://twitter.com/_manishmk");
+// SOCIAL LINKS
+const socialRoutes = [
+  { path: "/twitter", url: "https://twitter.com/_manishmk" },
+  { path: "/github", url: "https://github.com/mk-manishkumar" },
+  { path: "/linkedin", url: "https://www.linkedin.com/in/mk-manishkumar/" },
+  { path: "/blogs", url: "https://manishmk.hashnode.dev/" },
+  { path: "/portfolio", url: "https://manishmk.netlify.app/" },
+];
+
+socialRoutes.forEach((route) => {
+  app.get(route.path, (req, res) => {
+    res.redirect(route.url);
+  });
 });
 
-app.get("/github", (req, res) => {
-  res.redirect("https://github.com/mk-manishkumar");
+// BACKEND DEPLOYED PROJECTS
+const projectRoutes = [
+  { path: "/coinkeeper", url: "https://coinkeeper-ngmb.onrender.com/" },
+  { path: "/notenexus", url: "https://notenexus-nmow.onrender.com/" },
+];
+
+projectRoutes.forEach((route) => {
+  app.get(route.path, (req, res) => {
+    res.redirect(route.url);
+  });
 });
 
-app.get("/linkedin", (req, res) => {
-  res.redirect("https://www.linkedin.com/in/mk-manishkumar/");
-});
-
-app.get("/blogs", (req, res) => {
-  res.redirect("https://manishmk.hashnode.dev/");
-});
-
-app.get("/portfolio", (req, res) => {
-  res.redirect("https://manishmk.netlify.app/");
-});
-
-app.use((err, req, res, next) => {
+// 404 Error Handling Middleware
+app.use((req, res, next) => {
+  const error = new Error("Page Not Found");
   res.status(404).render("error", { error: err.message });
+  next(error);
+});
+
+// global error handler
+app.use((err, req, res, next) => {
+  res.status(500).render("error", { error: err.message });
 });
 
 app.listen(port, () => {
